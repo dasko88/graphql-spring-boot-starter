@@ -27,7 +27,4 @@ public class GraphQLController {
 				.build());
 	}
 
-	/**
-	 * TODO: API GET graphql.schema
-	 */
 }

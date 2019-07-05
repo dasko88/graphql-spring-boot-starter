@@ -58,7 +58,6 @@ public class ReflectionSchemaStrategy implements GraphQLSchemaStrategy {
 			String updateEntityName = SchemaHelper.applyTrasformation(entityName, SchemaHelper.updateEntityTrasformation());
 			dataFetcherMutationMap.put(updateEntityName, new UpdateDataFetcher(jpaRepository, entityType.getJavaType()));
 		}
-		// TODO: allow additional queries and mutations
 		RuntimeWiring runtimeWiring = newRuntimeWiring()
 				.type("Query", builder -> builder.dataFetchers(dataFetcherQueryMap))
 				.type("Mutation", builder -> builder.dataFetchers(dataFetcherMutationMap))

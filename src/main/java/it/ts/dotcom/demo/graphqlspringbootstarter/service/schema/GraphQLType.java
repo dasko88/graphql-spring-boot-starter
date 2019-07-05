@@ -22,7 +22,6 @@ public class GraphQLType {
 		return fieldList;
 	}
 
-	// TODO: search for @Id
 	public GraphQLField getIdField() {
 		return new GraphQLField("id", Integer.class);
 	}

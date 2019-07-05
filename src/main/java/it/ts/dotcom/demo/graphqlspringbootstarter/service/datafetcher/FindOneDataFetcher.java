@@ -10,7 +10,6 @@ public class FindOneDataFetcher<T> extends BaseDataFetcher<T> implements CrudDat
 	}
 
 	/**
-	 * TODO read @Id
 	 *
 	 * @param environment
 	 * @return

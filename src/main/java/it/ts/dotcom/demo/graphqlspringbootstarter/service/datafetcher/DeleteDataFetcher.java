@@ -10,7 +10,6 @@ public class DeleteDataFetcher<T> extends BaseDataFetcher<T> implements CrudData
 	}
 
 	/**
-	 * TODO
 	 *
 	 * @param environment
 	 * @return
