@@ -1,6 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-it.ts.dotcom.demo.graphqlspringbootstarter.HelloServiceAutoConfiguration,\
-it.ts.dotcom.demo.graphqlspringbootstarter.controller.DemoController,\
 it.ts.dotcom.demo.graphqlspringbootstarter.controller.GraphQLController,\
 it.ts.dotcom.demo.graphqlspringbootstarter.configuration.GraphQLConfiguration,\
 it.ts.dotcom.demo.graphqlspringbootstarter.configuration.ResourceSchemaStrategy
