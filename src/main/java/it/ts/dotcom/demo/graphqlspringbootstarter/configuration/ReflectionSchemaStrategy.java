@@ -11,12 +11,12 @@ import it.ts.dotcom.demo.graphqlspringbootstarter.service.datafetcher.CreateData
 import it.ts.dotcom.demo.graphqlspringbootstarter.service.datafetcher.FindAllDataFetcher;
 import it.ts.dotcom.demo.graphqlspringbootstarter.service.datafetcher.FindOneDataFetcher;
 import it.ts.dotcom.demo.graphqlspringbootstarter.service.datafetcher.UpdateDataFetcher;
+import it.ts.dotcom.demo.graphqlspringbootstarter.service.schema.SchemaHelper;
+import it.ts.dotcom.demo.graphqlspringbootstarter.service.schema.TypeDefinitionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 import java.util.HashMap;
@@ -26,55 +26,22 @@ import java.util.Set;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
-@Component("resourceSchemaStrategy")
-public class ResourceSchemaStrategy implements GraphQLSchemaStrategy {
+public class ReflectionSchemaStrategy implements GraphQLSchemaStrategy {
 
 	@Autowired
 	private EntityManager entityManager;
 	@Autowired
 	private ApplicationContext applicationContext;
-	private String schemaInput;
-
-	/**
-	 * TODO: create schema from Entities
-	 */
-	@PostConstruct
-	public void init() {
-		schemaInput = "type Query {\n" +
-				"    getUser(id: Int!): User\n" +
-				"    allUsers: [User]\n" +
-				"    getTask(id: Int!): Task\n" +
-				"    allTasks: [Task]\n" +
-				"}\n" +
-				"\n" +
-				"type Mutation {\n" +
-				"    newUser(name: String!, surname: String, height:Int!): User!\n" +
-				"    newTask(name: String!, code: String!, priority:Int): Task!\n" +
-				"    updateUser(id: Int!, name: String!, surname: String, height:Int!): User!\n" +
-				"}\n" +
-				"\n" +
-				"type User {\n" +
-				"    id: Int!\n" +
-				"    name: String!\n" +
-				"    surname: String\n" +
-				"    height: Int!\n" +
-				"}\n" +
-				"\n" +
-				"type Task {\n" +
-				"    id: Int!\n" +
-				"    name: String!\n" +
-				"    code: String!\n" +
-				"    priority: Int\n" +
-				"}";
-	}
+	@Autowired
+	private TypeDefinitionBuilder typeDefinitionBuilder;
 
 	@Override
 	public GraphQLSchema create() {
 		SchemaParser schemaParser = new SchemaParser();
-		// TODO: concat #schemaInput with additional queries and mutations
-		TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schemaInput);
 		Set<EntityType<?>> entities = entityManager.getMetamodel().getEntities();
 		Iterator<EntityType<?>> iterator = entities.iterator();
+		String schemaInput = typeDefinitionBuilder.createSchema(entities);
+		TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schemaInput);
 		Map<String, DataFetcher> dataFetcherQueryMap = new HashMap<>();
 		Map<String, DataFetcher> dataFetcherMutationMap = new HashMap<>();
 		while (iterator.hasNext()) {
@@ -82,13 +49,13 @@ public class ResourceSchemaStrategy implements GraphQLSchemaStrategy {
 			Class repositoryClass = entityType.getJavaType().getAnnotation(ConsumesRepository.class).value();
 			JpaRepository jpaRepository = (JpaRepository) applicationContext.getBean(repositoryClass);
 			String entityName = entityType.getName();
-			String allEntityName = "all" + entityName + "s";
+			String allEntityName = SchemaHelper.applyTrasformation(entityName, SchemaHelper.allEntityTrasformation());
 			dataFetcherQueryMap.put(allEntityName, new FindAllDataFetcher(jpaRepository));
-			String getEntityName = "get" + entityName;
+			String getEntityName = SchemaHelper.applyTrasformation(entityName, SchemaHelper.getEntityTrasformation());
 			dataFetcherQueryMap.put(getEntityName, new FindOneDataFetcher(jpaRepository));
-			String newEntityName = "new" + entityName;
+			String newEntityName = SchemaHelper.applyTrasformation(entityName, SchemaHelper.newEntityTrasformation());
 			dataFetcherMutationMap.put(newEntityName, new CreateDataFetcher(jpaRepository, entityType.getJavaType()));
-			String updateEntityName = "update" + entityName;
+			String updateEntityName = SchemaHelper.applyTrasformation(entityName, SchemaHelper.updateEntityTrasformation());
 			dataFetcherMutationMap.put(updateEntityName, new UpdateDataFetcher(jpaRepository, entityType.getJavaType()));
 		}
 		// TODO: allow additional queries and mutations
